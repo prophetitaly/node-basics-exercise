@@ -24,7 +24,9 @@ app.get("/health", (req, res) => {
 export { app };
 
 // Avvia il server solo se questo file viene eseguito direttamente
-if (require.main === module) {
+// In un progetto ES module, puoi semplicemente rimuovere questo check
+// oppure usare una variabile d'ambiente per controllare l'avvio del server
+if (process.env.NODE_ENV !== "test") {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
