@@ -23,7 +23,7 @@ describe("Users API Tests", () => {
     });
   });
 
-  describe.skip("POST /users", () => {
+  describe("POST /users", () => {
     it("should create a new user with valid data and return 201", async () => {
       const newUser = {
         name: "Mario Rossi",
@@ -116,7 +116,7 @@ describe("Users API Tests", () => {
     });
   });
 
-  describe.skip("GET /users", () => {
+  describe("GET /users", () => {
     beforeAll(async () => {
       // Crea alcuni utenti per testare la paginazione
       const users = [
@@ -178,7 +178,7 @@ describe("Users API Tests", () => {
     });
   });
 
-  describe.skip("GET /users/:id", () => {
+  describe("GET /users/:id", () => {
     let testUserId: string;
 
     beforeAll(async () => {
@@ -213,7 +213,7 @@ describe("Users API Tests", () => {
     });
   });
 
-  describe.skip("DELETE /users/:id", () => {
+  describe("DELETE /users/:id", () => {
     let userToDeleteId: string;
 
     beforeEach(async () => {
@@ -245,7 +245,7 @@ describe("Users API Tests", () => {
     });
   });
 
-  describe.skip("Integration Tests", () => {
+  describe("Integration Tests", () => {
     it("should complete full CRUD cycle", async () => {
       // CREATE
       const createResponse = await request(app)
@@ -275,7 +275,7 @@ describe("Users API Tests", () => {
     });
   });
 
-  describe.skip("GET /users/active", () => {
+  describe("GET /users/active", () => {
     it("should return only active users", async () => {
       const response = await request(app).get("/users/active").expect(200);
 
@@ -308,7 +308,7 @@ describe("Users API Tests", () => {
     });
   });
 
-  describe.skip("POST /tasks/heavy", () => {
+  describe("POST /tasks/heavy", () => {
     it("should start a heavy task on worker thread and return 202", async () => {
       const taskData = {
         iterations: 100000,
@@ -369,7 +369,7 @@ describe("Users API Tests", () => {
     });
   });
 
-  describe.skip("GET /tasks/:taskId", () => {
+  describe("GET /tasks/:taskId", () => {
     let taskId: string;
 
     beforeAll(async () => {
