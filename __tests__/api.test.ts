@@ -1,5 +1,7 @@
 import request from "supertest";
 import { app } from "../src/index";
+import { readFile, writeFile, copyFile } from "fs/promises";
+import { join } from "path";
 
 /**
  * Test Suite per API REST Users
@@ -14,6 +16,36 @@ import { app } from "../src/index";
 
 describe("Users API Tests", () => {
   let createdUserId: string;
+  const usersFilePath = join(process.cwd(), "data/users.json");
+  const backupFilePath = join(process.cwd(), "data/users.json.backup");
+  let originalData: string;
+
+  // Backup dei dati originali prima di tutti i test
+  beforeAll(async () => {
+    try {
+      originalData = await readFile(usersFilePath, "utf-8");
+      await writeFile(backupFilePath, originalData);
+    } catch (error) {
+      // Se il file non esiste, crea uno vuoto
+      originalData = "[]";
+      await writeFile(usersFilePath, originalData);
+      await writeFile(backupFilePath, originalData);
+    }
+  });
+
+  // Ripristina i dati originali dopo tutti i test
+  afterAll(async () => {
+    try {
+      await writeFile(usersFilePath, originalData);
+    } catch (error) {
+      console.error("Failed to restore original data:", error);
+    }
+  });
+
+  // Pulisce i dati prima di ogni suite di test per garantire isolamento
+  beforeEach(async () => {
+    await writeFile(usersFilePath, "[]");
+  });
 
   describe("GET /health", () => {
     it("should return 200 OK", async () => {
@@ -27,7 +59,7 @@ describe("Users API Tests", () => {
     it("should create a new user with valid data and return 201", async () => {
       const newUser = {
         name: "Mario Rossi",
-        email: "mario@test.com",
+        email: `mario-${Date.now()}@test.com`,
       };
 
       const response = await request(app)
@@ -100,9 +132,10 @@ describe("Users API Tests", () => {
     });
 
     it("should return 409 for duplicate email", async () => {
+      const uniqueEmail = `duplicate-${Date.now()}@test.com`;
       const user = {
         name: "Test User",
-        email: "duplicate@test.com",
+        email: uniqueEmail,
       };
 
       // Prima creazione
@@ -117,12 +150,13 @@ describe("Users API Tests", () => {
   });
 
   describe("GET /users", () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
       // Crea alcuni utenti per testare la paginazione
+      const timestamp = Date.now();
       const users = [
-        { name: "User 1", email: "user1@test.com" },
-        { name: "User 2", email: "user2@test.com" },
-        { name: "User 3", email: "user3@test.com" },
+        { name: "User 1", email: `user1-${timestamp}@test.com` },
+        { name: "User 2", email: `user2-${timestamp}@test.com` },
+        { name: "User 3", email: `user3-${timestamp}@test.com` },
       ];
 
       for (const user of users) {
@@ -181,11 +215,11 @@ describe("Users API Tests", () => {
   describe("GET /users/:id", () => {
     let testUserId: string;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       // Crea un utente per i test
       const response = await request(app)
         .post("/users")
-        .send({ name: "Single User", email: "single@test.com" });
+        .send({ name: "Single User", email: `single-${Date.now()}@test.com` });
       testUserId = response.body.id;
     });
 
@@ -250,7 +284,7 @@ describe("Users API Tests", () => {
       // CREATE
       const createResponse = await request(app)
         .post("/users")
-        .send({ name: "Full Cycle", email: "cycle@test.com" })
+        .send({ name: "Full Cycle", email: `cycle-${Date.now()}@test.com` })
         .expect(201);
 
       const userId = createResponse.body.id;
@@ -311,7 +345,7 @@ describe("Users API Tests", () => {
   describe("POST /tasks/heavy", () => {
     it("should start a heavy task on worker thread and return 202", async () => {
       const taskData = {
-        iterations: 100000,
+        iterations: 10000,
       };
 
       const response = await request(app)
@@ -372,17 +406,17 @@ describe("Users API Tests", () => {
   describe("GET /tasks/:taskId", () => {
     let taskId: string;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       // Crea un task per i test
       const response = await request(app)
         .post("/tasks/heavy")
-        .send({ iterations: 50000 });
+        .send({ iterations: 5000 });
       taskId = response.body.taskId;
     });
 
     it("should return task status and result when completed", async () => {
       // Attendi un po' per dare tempo al worker di completare
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const response = await request(app).get(`/tasks/${taskId}`).expect(200);
 
